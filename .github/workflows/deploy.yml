@@ -10,6 +10,35 @@ permissions:
   contents: write
 
 jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - name: Install UV
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: false
+
+      - name: Install build dependencies
+        run: uv sync
+
+      - name: Build wheels with UV
+        run: uv build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ github.run_id }}
+          path: dist/*
+
   release:
     name: Release
     runs-on: ubuntu-latest
@@ -47,9 +76,8 @@ jobs:
           contains(github.ref, '-beta') ||
           contains(github.ref, '.rc') ||
           contains(github.ref, '-rc')
-        env:
-          UV_PUBLISH_TOKEN: ${{ secrets.TEST_PYPI_API_TOKEN }}
-        run: uv publish --repository testpypi dist/*
+
+        run: uv publish dist/* --publish-url https://test.pypi.org/legacy/ --token ${{ secrets.TEST_PYPI_API_TOKEN }}
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
