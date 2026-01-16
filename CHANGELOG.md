@@ -7,4 +7,4 @@
 ### ⚙️ Miscellaneous Tasks
 
 - Added flake support
-- Added git changelog
+- Fixed pipeline for test pypi
