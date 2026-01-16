@@ -1,0 +1,62 @@
+name: Deploy to PyPI Server
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install UV
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: false
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: wheels-*
+          path: dist
+          merge-multiple: true
+
+      - name: Publish to PyPI with UV
+        if: >-
+          !contains(github.ref, '.alpha') &&
+          !contains(github.ref, '-alpha') &&
+          !contains(github.ref, '.beta') &&
+          !contains(github.ref, '-beta') &&
+          !contains(github.ref, '.rc') &&
+          !contains(github.ref, '-rc')
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+        run: uv publish dist/*
+      - name: Publish to Test PyPI
+        if: >-
+          contains(github.ref, '.alpha') ||
+          contains(github.ref, '-alpha') ||
+          contains(github.ref, '.beta') ||
+          contains(github.ref, '-beta') ||
+          contains(github.ref, '.rc') ||
+          contains(github.ref, '-rc')
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.TEST_PYPI_API_TOKEN }}
+        run: uv publish --repository testpypi dist/*
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/*
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: contains(github.ref, '-alpha') || contains(github.ref, '-beta') || contains(github.ref, '-rc')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

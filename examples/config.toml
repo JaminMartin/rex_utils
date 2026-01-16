@@ -1,0 +1,16 @@
+[session.info]
+name = "John Doe"
+email = "test@example.com"
+session_name = "Test"
+session_description = "This is a test"
+[session.info.meta]
+addtional_important_info = "This really is a test"
+
+[device.test_daq]
+gate_time = 1000
+averages = 100
+trace = true
+[device.test_daq2]
+gate_time = 1000
+averages = 100
+trace = true
