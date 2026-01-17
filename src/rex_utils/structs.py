@@ -2,6 +2,7 @@ from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
+from pydantic.aliases import AliasChoices
 
 
 class SessionMetadata(BaseModel):
@@ -16,8 +17,21 @@ class SessionInfo(BaseModel):
 
     name: str
     email: str
-    session_name: str
-    session_description: str
+
+    session_name: str = Field(
+        validation_alias=AliasChoices(
+            "session_name", "experiment_name", "test_name", "run_name"
+        )
+    )
+
+    session_description: str = Field(
+        validation_alias=AliasChoices(
+            "session_description",
+            "experiment_description",
+            "test_description",
+            "run_description",
+        )
+    )
     meta: Optional[SessionMetadata] = None
 
 
