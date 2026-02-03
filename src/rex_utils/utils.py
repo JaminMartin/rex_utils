@@ -19,23 +19,41 @@ from .structs import (
 )
 
 
-def load_config(path: str) -> dict:
-    with open(path, "r") as f:
-        config_toml = toml.load(f)
-
+def load_config(path: str) -> Dict:
     overwrite_path = os.environ.get("REX_PROVIDED_OVERWRITE_PATH")
-    if overwrite_path and os.path.exists(overwrite_path):
+
+    base_exists = path and os.path.exists(path)
+    overwrite_exists = overwrite_path and os.path.exists(overwrite_path)
+
+    if not base_exists and not overwrite_exists:
+        raise FileNotFoundError(
+            "No configuration found. "
+            f"Checked base path: {path!r} and env overwrite path: {overwrite_path!r}"
+        )
+
+    config = {}
+
+    if base_exists:
+        try:
+            with open(path, "r") as f:
+                config = toml.load(f)
+        except Exception as e:
+            raise RuntimeError(f"Failed to load base config {path!r}: {e}") from e
+
+    if overwrite_exists:
         try:
             with open(overwrite_path, "r") as f:
                 overwrite_config = toml.load(f)
 
             print(f"Applying config overwrite from: {overwrite_path}")
-            config_toml = deep_merge_config(config_toml, overwrite_config)
+            config = deep_merge_config(config, overwrite_config)
 
         except Exception as e:
-            print(f"Warning: Could not apply config overwrite: {e}")
+            raise RuntimeError(
+                f"Failed to load overwrite config {overwrite_path!r}: {e}"
+            ) from e
 
-    return config_toml
+    return config
 
 
 def deep_merge_config(base: dict, overwrite: dict) -> dict:
