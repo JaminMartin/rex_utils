@@ -1,3 +1,17 @@
+## [0.1.3] - 2026-02-03
+
+### 🚀 Features
+
+- Added better config handling
+## [0.1.2] - 2026-01-17
+
+### 🐛 Bug Fixes
+
+- Backwards compatability with experiment field
+
+### ⚙️ Miscellaneous Tasks
+
+- Version bump of lock file
 ## [0.1.1] - 2026-01-16
 
 ### 🐛 Bug Fixes
